@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Maru Lipi serverless literature API
+
+Parameters:
+  AdminToken:
+    Type: String
+    NoEcho: true
+    MinLength: 24
+    Description: Create a long random admin token. Do not commit it to GitHub.
+
+Globals:
+  Function:
+    Timeout: 15
+    MemorySize: 256
+    Runtime: python3.12
+    Architectures:
+      - x86_64
+
+Resources:
+  LiteratureTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: MaruLipiLiterature
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  LiteratureApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Admin-Token'"
+        AllowOrigin: "'*'"
+
+  LiteratureFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: app.handler.handler
+      Environment:
+        Variables:
+          LITERATURE_TABLE: !Ref LiteratureTable
+          ADMIN_TOKEN: !Ref AdminToken
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LiteratureTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LiteratureApi
+            Path: /{proxy+}
+            Method: ANY
+        Root:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LiteratureApi
+            Path: /
+            Method: ANY
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint
+    Value: !Sub 'https://${LiteratureApi}.execute-api.${AWS::Region}.amazonaws.com/prod/'
