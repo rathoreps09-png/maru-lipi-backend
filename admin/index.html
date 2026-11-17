@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#292017">
+<title>Maru Lipi — Admin</title>
+<style>
+:root{color-scheme:light;--ink:#292017;--muted:#827565;--paper:#f7f2e9;--card:#fffdf8;--line:#e7ddce;--rust:#9a4d2e;--gold:#c59a58;--green:#536b4c;--red:#a13c32}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Georgia,"Noto Serif Devanagari",serif}
+header{background:#292017;color:#f7ead5;padding:22px clamp(18px,5vw,64px);display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:4px solid var(--gold)}
+.brand{font-size:25px;letter-spacing:.04em}.brand small{display:block;font:10px/1.5 Arial,sans-serif;letter-spacing:.22em;color:#d1b78e}
+header button{background:transparent;color:#f7ead5;border:1px solid #8b7659;padding:9px 14px;border-radius:5px;cursor:pointer}
+main{max-width:1180px;margin:34px auto;padding:0 20px}.intro{margin-bottom:24px}.eyebrow{font:11px Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--rust)}h1{font-size:clamp(26px,4vw,38px);font-weight:normal;margin:5px 0}.sub{color:var(--muted);margin:0}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px;box-shadow:0 8px 28px #392b1510}
+.login{max-width:520px;margin:45px auto}.field{display:flex;flex-direction:column;gap:6px;margin-bottom:15px}label{font:12px Arial,sans-serif;letter-spacing:.04em;color:#665747}input,select,textarea{width:100%;border:1px solid #d8cbb8;border-radius:6px;padding:11px 12px;background:#fffefa;color:var(--ink);font:15px Georgia,serif;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--rust);box-shadow:0 0 0 3px #9a4d2e18}textarea{min-height:230px;resize:vertical;line-height:1.7}
+button.primary{background:var(--rust);color:white;border:0;border-radius:6px;padding:11px 18px;font:13px Arial,sans-serif;letter-spacing:.04em;cursor:pointer}button.secondary{background:#f0e7d9;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px 14px;cursor:pointer;font:13px Arial,sans-serif}button.danger{background:#fff1ed;color:var(--red);border:1px solid #ebc9c2;border-radius:6px;padding:8px 11px;cursor:pointer}
+button:disabled{opacity:.55;cursor:wait}.hidden{display:none!important}.notice{padding:10px 12px;border-radius:6px;background:#f5eddf;color:#6a5130;margin:12px 0;font:13px Arial,sans-serif}.error{background:#fff0ed;color:var(--red)}.success{background:#edf4e9;color:var(--green)}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0}.filters{display:flex;gap:8px;flex-wrap:wrap}.filters select{width:auto;min-width:130px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,1.15fr);gap:20px;align-items:start}
+.list{display:flex;flex-direction:column;gap:9px;max-height:680px;overflow:auto}.item{border:1px solid var(--line);border-radius:7px;padding:12px;background:#fffefa}.item.active{border-color:var(--rust);box-shadow:inset 3px 0 var(--rust)}.itemtop{display:flex;justify-content:space-between;gap:10px}.itemtitle{font-size:17px}.meta{font:11px Arial,sans-serif;color:var(--muted);margin-top:4px}.pill{display:inline-block;border-radius:20px;padding:3px 8px;background:#eee6d9;color:#6a5130;font:10px Arial,sans-serif}.pill.live{background:#e9f1e5;color:#46613f}.actions{display:flex;gap:7px;margin-top:10px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.formgrid .field{margin:0}.wide{grid-column:1/-1}.formactions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+.empty{color:var(--muted);text-align:center;padding:30px 10px}.count{font:12px Arial,sans-serif;color:var(--muted)}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.list{max-height:350px}.formgrid{grid-template-columns:1fr}.wide{grid-column:auto}header{padding:17px 18px}}
+</style>
+</head>
+<body>
+<header><div class="brand">MARU LIPI<small>शब्द • संस्कृति • सरोकार</small></div><button id="logout" class="hidden" type="button">Log out</button></header>
+<main>
+<section class="intro"><div class="eyebrow">Editorial workspace</div><h1>Literature management</h1><p class="sub">Manage poems, stories and essays for Maru Lipi.</p></section>
+<section id="login" class="panel login">
+<h2 style="font-weight:normal;margin-top:0">Admin sign in</h2>
+<p class="sub">Connect to the Maru Lipi API using your private admin token.</p>
+<div class="field"><label for="api">API base URL</label><input id="api" type="url" placeholder="https://your-api-id.execute-api.ap-south-1.amazonaws.com/prod/" autocomplete="url"></div>
+<div class="field"><label for="token">Admin token</label><input id="token" type="password" autocomplete="current-password" placeholder="Enter your secret token"></div>
+<button id="loginBtn" class="primary" type="button">Connect securely</button>
+<div id="loginMsg" class="notice hidden" role="status"></div>
+</section>
+<section id="workspace" class="hidden">
+<div class="toolbar"><div class="count" id="count">0 entries</div><div class="filters"><select id="filterCategory"><option value="">All categories</option><option value="poem">Poetry</option><option value="story">Stories</option><option value="essay">Essays</option></select><select id="filterLanguage"><option value="">All languages</option><option value="hi">Hindi</option><option value="mwr">Marwari</option></select><button id="newBtn" class="primary" type="button">+ New writing</button></div></div>
+<div class="layout">
+<section class="panel"><h2 style="font-weight:normal;margin-top:0">Your writings</h2><div id="items" class="list"><div class="empty">Loading writings…</div></div></section>
+<section class="panel"><h2 id="formTitle" style="font-weight:normal;margin-top:0">Create a new work</h2>
+<form id="editor">
+<div class="formgrid">
+<div class="field wide"><label for="title">Title</label><input id="title" maxlength="200" required placeholder="शीर्षक"></div>
+<div class="field"><label for="category">Category</label><select id="category"><option value="poem">Poetry</option><option value="story">Story</option><option value="essay">Essay</option></select></div>
+<div class="field"><label for="language">Language</label><select id="language"><option value="hi">Hindi</option><option value="mwr">Marwari</option></select></div>
+<div class="field wide"><label for="author">Author</label><input id="author" value="Maru Lipi"></div>
+<div class="field wide"><label for="content">Full text</label><textarea id="content" required placeholder="अपनी रचना यहाँ लिखें…"></textarea></div>
+<div class="field wide"><label style="display:flex;align-items:center;gap:9px"><input id="published" type="checkbox" style="width:auto"> Publish on website</label></div>
+</div>
+<div class="formactions"><button class="primary" id="saveBtn" type="submit">Save writing</button><button class="secondary" id="resetBtn" type="button">Clear form</button><span id="saveMsg" class="count" role="status"></span></div>
+</form>
+</section>
+</div>
+</section>
+</main>
+<script>
+(() => {
+ const $ = id => document.getElementById(id);
+ let apiBase = "", adminToken = "", records = [], editingId = null;
+ const cleanBase = value => value.trim().replace(/\/+$/, "");
+ const message = (node, text, type="notice") => { node.textContent=text; node.className="notice "+type; node.classList.remove("hidden"); };
+ async function request(path, options={}) {
+   const response = await fetch(apiBase + path, { ...options, headers: { "Content-Type":"application/json", "X-Admin-Token":adminToken, ...(options.headers||{}) }});
+   const data = await response.json().catch(()=>({detail:"Unexpected server response"}));
+   if (!response.ok) throw new Error(data.detail || "Request failed ("+response.status+")");
+   return data;
+ }
+ function escapeHTML(value="") { return String(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+ async function connect() {
+   apiBase=cleanBase($("api").value); adminToken=$("token").value;
+   if(!apiBase || !adminToken){message($("loginMsg"),"Enter both the API URL and admin token.","error");return;}
+   $("loginBtn").disabled=true;
+   try {
+     await request("/admin/literature");
+     $("login").classList.add("hidden"); $("workspace").classList.remove("hidden"); $("logout").classList.remove("hidden");
+     $("api").value=apiBase; $("token").value=""; await load();
+   } catch(error) { adminToken=""; message($("loginMsg"),error.message,"error"); }
+   finally {$("loginBtn").disabled=false;}
+ }
+ async function load() {
+   $("items").innerHTML='<div class="empty">Loading…</div>';
+   try {
+     const result=await request("/admin/literature"); records=result.items||[]; render();
+   } catch(error) { $("items").innerHTML='<div class="empty">'+escapeHTML(error.message)+'</div>'; }
+ }
+ function render() {
+   const category=$("filterCategory").value, language=$("filterLanguage").value;
+   const filtered=records.filter(x=>(!category||x.category===category)&&(!language||x.language===language));
+   $("count").textContent=filtered.length+" of "+records.length+" entries";
+   if(!filtered.length){$("items").innerHTML='<div class="empty">No writings found. Create your first work.</div>';return;}
+   $("items").innerHTML=filtered.map(item=>'<article class="item '+(item.id===editingId?'active':'')+'"><div class="itemtop"><div><div class="itemtitle">'+escapeHTML(item.title)+'</div><div class="meta">'+escapeHTML(item.category)+' · '+(item.language==="mwr"?"Marwari":"Hindi")+'</div></div><span class="pill '+(item.published?'live':'')+'">'+(item.published?'Published':'Draft')+'</span></div><div class="actions"><button class="secondary" data-edit="'+escapeHTML(item.id)+'" type="button">Edit</button><button class="danger" data-delete="'+escapeHTML(item.id)+'" type="button">Delete</button></div></article>').join("");
+ }
+ function clearForm() {editingId=null;$("editor").reset();$("author").value="Maru Lipi";$("formTitle").textContent="Create a new work";$("saveBtn").textContent="Save writing";$("saveMsg").textContent="";render();}
+ function edit(id) {
+   const item=records.find(x=>x.id===id);if(!item)return;editingId=id;
+   $("title").value=item.title||"";$("category").value=item.category||"poem";$("language").value=item.language||"hi";$("author").value=item.author||"Maru Lipi";$("content").value=item.content||"";$("published").checked=!!item.published;
+   $("formTitle").textContent="Edit writing";$("saveBtn").textContent="Update writing";render();window.scrollTo({top:document.querySelector("#editor").getBoundingClientRect().top+window.scrollY-25,behavior:"smooth"});
+ }
+ $("loginBtn").addEventListener("click",connect);
+ $("token").addEventListener("keydown",e=>{if(e.key==="Enter")connect();});
+ $("logout").addEventListener("click",()=>{adminToken="";records=[];editingId=null;$("workspace").classList.add("hidden");$("login").classList.remove("hidden");$("logout").classList.add("hidden");$("loginMsg").classList.add("hidden");clearForm();});
+ $("newBtn").addEventListener("click",clearForm);$("resetBtn").addEventListener("click",clearForm);
+ $("filterCategory").addEventListener("change",render);$("filterLanguage").addEventListener("change",render);
+ $("items").addEventListener("click",async e=>{
+   const editButton=e.target.closest("[data-edit]"), deleteButton=e.target.closest("[data-delete]");
+   if(editButton)edit(editButton.dataset.edit);
+   if(deleteButton){const id=deleteButton.dataset.delete;const item=records.find(x=>x.id===id);if(!item||!confirm('Delete "'+item.title+'" permanently?'))return;
+     try{await request("/admin/literature/"+encodeURIComponent(id),{method:"DELETE"});if(editingId===id)clearForm();await load();}
+     catch(error){alert(error.message);}
+   }
+ });
+ $("editor").addEventListener("submit",async e=>{
+   e.preventDefault();const payload={title:$("title").value.trim(),category:$("category").value,language:$("language").value,author:$("author").value.trim()||"Maru Lipi",content:$("content").value,published:$("published").checked};
+   $("saveBtn").disabled=true;$("saveMsg").textContent="Saving…";
+   try{await request(editingId?"/admin/literature/"+encodeURIComponent(editingId):"/admin/literature",{method:editingId?"PUT":"POST",body:JSON.stringify(payload)});message($("saveMsg"),"Saved successfully.","success");await load();clearForm();}
+   catch(error){$("saveMsg").textContent=error.message;}
+   finally{$("saveBtn").disabled=false;}
+ });
+})();
+</script>
+</body>
+</html>
