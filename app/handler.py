@@ -78,6 +78,19 @@ def get_literature(item_id: str):
     return clean(item)
 
 
+@app.get("/admin/literature")
+def admin_list_literature(x_admin_token: str | None = Header(default=None)):
+    """Return all literature, including drafts, to an authenticated admin."""
+    require_admin(x_admin_token)
+    response = table.scan()
+    items = response.get("Items", [])
+    while "LastEvaluatedKey" in response:
+        response = table.scan(ExclusiveStartKey=response["LastEvaluatedKey"])
+        items.extend(response.get("Items", []))
+    items.sort(key=lambda item: item.get("updated_at", ""), reverse=True)
+    return {"items": clean(items)}
+
+
 @app.post("/admin/literature", status_code=201)
 def create_literature(
     payload: LiteratureInput, x_admin_token: str | None = Header(default=None)
